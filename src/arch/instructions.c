@@ -68,6 +68,17 @@ __attribute__((unused))bool execute_STORE_instruction(task_t* task, uint16_t ope
         }case REG_MEM:{
             write_to_correct_register(task, operand1, read_from_bus(task, operand2));
             return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2));
+            }else{
+                write_to_bus(task, operand1, (uint8_t)(read_from_correct_register(task, operand2) >> 8));
+                write_to_bus(task, operand1 + 1, read_from_correct_register(task, operand2));
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, operand2);
+            return true;
         }default: break;
     }
     return false;
@@ -171,21 +182,69 @@ __attribute__((unused))bool execute_CMP_instruction(task_t* task, uint16_t opera
 __attribute__((unused))bool execute_NOT_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG:{
-            write_to_correct_register(task, operand1, !read_from_correct_register(task, operand1));
+            write_to_correct_register(task, operand1, ~read_from_correct_register(task, operand1));
             return true;
         }case MEM:{
-            write_to_bus(task, operand1, !(read_from_bus(task, operand1) << 8));
+            write_to_bus(task, operand1, ~(read_from_bus(task, operand1) << 8));
             return true;
-        }
+        }default: break;
     }
     
     return false;
 }
 
-__attribute__((unused))bool execute_AND_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){return true;}
+__attribute__((unused))bool execute_AND_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+    switch(addr_mode){
+        case REG_REG:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) & read_from_correct_register(task, operand2));
+            return true;
+        }case REG_IMMEDIATE:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) & operand2);
+            return true;
+        }
+        default: break;
+    }
+    return false;
+}
 
-__attribute__((unused))bool execute_OR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){return true;}
+__attribute__((unused))bool execute_OR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+    switch(addr_mode){
+        case REG_REG:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) | read_from_correct_register(task, operand2));
+            return true;
+        }case REG_IMMEDIATE:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) | operand2);
+            return true;
+        }
+        default: break;
+    }
+    return false;
+}
 
-__attribute__((unused))bool execute_SHL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){return true;}
+__attribute__((unused))bool execute_SHL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+    switch(addr_mode){
+        case REG_REG:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) << read_from_correct_register(task, operand2));
+            return true;
+        }case REG_IMMEDIATE:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) << operand2);
+            return true;
+        }
+        default: break;
+    }
+    return false;
+}
 
-__attribute__((unused))bool execute_SHR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){return true;}
+__attribute__((unused))bool execute_SHR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+    switch(addr_mode){
+        case REG_REG:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) >> read_from_correct_register(task, operand2));
+            return true;
+        }case REG_IMMEDIATE:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) >> operand2);
+            return true;
+        }
+        default: break;
+    }
+    return false;
+}
