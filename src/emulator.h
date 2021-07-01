@@ -9,8 +9,8 @@ typedef struct{
     uint16_t end;
     uint8_t* address_space;
     bool trigger_access_notifs;
-    void(*on_device_read)();
-    void(*on_device_write)(uint16_t address);
+    void(*on_device_read)(uint16_t address);
+    void(*on_device_write)(uint16_t address, uint8_t value);
 } bus_device_t;
 
 typedef struct{

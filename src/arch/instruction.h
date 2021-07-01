@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <emulator.h>
 
-#define INSTRUCTION_COUNT 0xA
+#define INSTRUCTION_COUNT 0xC
 
 typedef enum{
     MEM = 1 << 0,
@@ -16,7 +16,7 @@ typedef enum{
     REG_IMMEDIATE = 1 << 5,
     REG = 1 << 6,
     NOTHING = 1 << 7
-} addr_modes_e;
+} emu_addr_modes_e;
 
 typedef enum{
     NULL_INSTRUCTION = 0x0,
@@ -28,20 +28,22 @@ typedef enum{
     CMP = 0x6,
     NOT = 0x7,
     AND = 0x8,
-    OR = 0x9
-} opcodes_e;
+    OR = 0x9,
+    SHL = 0xA,
+    SHR = 0xB
+} emu_opcodes_e;
 
 typedef struct{
-    opcodes_e opcode;
+    emu_opcodes_e opcode;
     uint8_t addr_modes;
-    bool (*execute_instruction)(task_t* task, uint16_t operand1, uint16_t operand2, addr_modes_e addr_mode);
-} instruction_t;
+    bool (*execute_instruction)(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode);
+} emu_instruction_t;
 
-instruction_t instruction_set[INSTRUCTION_COUNT];
+emu_instruction_t instruction_set[INSTRUCTION_COUNT];
 
-instruction_t get_instruction(opcodes_e opcode);
+emu_instruction_t emu_get_instruction(emu_opcodes_e opcode);
 
-void register_instruction(opcodes_e opcode, uint8_t addr_modes);
-void register_instructions();
+void emu_register_instruction(emu_opcodes_e opcode, uint8_t addr_modes);
+void emu_register_instructions();
 
 #endif

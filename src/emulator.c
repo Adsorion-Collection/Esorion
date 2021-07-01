@@ -23,9 +23,9 @@ void add_task(uint16_t* bytecode_buffer, uint32_t bytecode_buffer_length){
 }
 
 void execute_task_iteration(task_t* task){
-    instruction_t instruction;
+    emu_instruction_t instruction;
     
-    if(task->info.instruction_pointer < task->bytecode_buffer_length) instruction = get_instruction(task->bytecode_buffer[task->info.instruction_pointer]);
+    if(task->info.instruction_pointer < task->bytecode_buffer_length) instruction = emu_get_instruction(task->bytecode_buffer[task->info.instruction_pointer] >> 8);
     else {
         task->info.instruction_pointer = 0;
         execute_task_iteration(task);
