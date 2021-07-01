@@ -24,12 +24,16 @@ void add_task(uint16_t* bytecode_buffer, uint32_t bytecode_buffer_length){
 
 void execute_task_iteration(task_t* task){
     emu_instruction_t instruction;
-    
-    if(task->info.instruction_pointer < task->bytecode_buffer_length) instruction = emu_get_instruction(task->bytecode_buffer[task->info.instruction_pointer] >> 8);
-    else {
+
+    if(task->info.instruction_pointer < task->bytecode_buffer_length) instruction = emu_get_instruction(task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t)] >> 8);
+    else{
         task->info.instruction_pointer = 0;
-        execute_task_iteration(task);
+        instruction = emu_get_instruction(task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t)] >> 8);
+        instruction.execute_instruction(task, task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t) + 1], task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t) + 2], (uint8_t)task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t)]);
+        task->info.instruction_pointer += 6;
+        return;
     }
 
-    instruction.execute_instruction(task, task->bytecode_buffer[task->info.instruction_pointer + 1], task->bytecode_buffer[task->info.instruction_pointer + 2], (uint8_t)task->bytecode_buffer[task->info.instruction_pointer]);
+    instruction.execute_instruction(task, task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t) + 1], task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t) + 2], (uint8_t)task->bytecode_buffer[task->info.instruction_pointer / sizeof(uint16_t)]);
+    task->info.instruction_pointer += 6;
 }
