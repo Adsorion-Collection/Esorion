@@ -15,12 +15,12 @@ int main(void){
     emu_register_instructions();
 
     uint16_t* bytecode_buffer = (uint16_t*)calloc(1, 0x100);
-    bytecode_buffer[0] = REG_IMMEDIATE | (ADD << 8);
+    bytecode_buffer[0] = REG_IMMEDIATE | (STORE << 8);
     bytecode_buffer[1] = 0x1;
     bytecode_buffer[2] = 0x20;
-    bytecode_buffer[3] = REG_IMMEDIATE | (SUB << 8);
+    bytecode_buffer[3] = REG_IMMEDIATE | (STORE << 8);
     bytecode_buffer[4] = 0x1;
-    bytecode_buffer[5] = 0x20;
+    bytecode_buffer[5] = 0x10;
     add_task(bytecode_buffer, 18);
     while(1){
         system("clear");

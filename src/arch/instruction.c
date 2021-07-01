@@ -52,7 +52,7 @@ void emu_register_instructions(){
     emu_register_instruction(JMPEQ, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
     emu_register_instruction(JMPMR, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
     emu_register_instruction(CMP, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
-    emu_register_instruction(NOT, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
+    emu_register_instruction(NOT, (MEM | REG));
     emu_register_instruction(AND, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
     emu_register_instruction(OR, (MEM_REG | REG_MEM | REG_REG | REG_IMMEDIATE | MEM_IMMEDIATE));
     emu_register_instruction(SHL, (REG_MEM | REG_REG | REG_IMMEDIATE));
