@@ -39,6 +39,9 @@ static void write_to_corresponding_8bit_register(task_t* task, uint16_t register
 }
 
 static void write_to_correct_register(task_t* task, uint16_t register_operand, uint16_t value){
+    if((register_operand & 0b1111) > 0x5){
+        return;
+    }
     if(is_register_8bit(register_operand)){
         write_to_corresponding_8bit_register(task, register_operand, (uint8_t)value);
         return;
@@ -47,6 +50,9 @@ static void write_to_correct_register(task_t* task, uint16_t register_operand, u
 }
 
 static uint16_t read_from_correct_register(task_t* task, uint16_t register_operand){
+    if((register_operand & 0b1111) > 0x5){
+        return 0;
+    }
     if(is_register_8bit(register_operand)){
         return read_from_corresponding_8bit_register(task, register_operand);
     }
@@ -92,8 +98,23 @@ __attribute__((unused))bool execute_ADD_instruction(task_t* task, uint16_t opera
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) + operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) + read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) + read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value + read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) + operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
@@ -106,8 +127,23 @@ __attribute__((unused))bool execute_SUB_instruction(task_t* task, uint16_t opera
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) - operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) - read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) - read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value - read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) - operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
@@ -201,8 +237,23 @@ __attribute__((unused))bool execute_AND_instruction(task_t* task, uint16_t opera
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) & operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) & read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) & read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value + read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) & operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
@@ -215,8 +266,23 @@ __attribute__((unused))bool execute_OR_instruction(task_t* task, uint16_t operan
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) | operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) | read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) | read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value | read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) | operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
@@ -229,8 +295,23 @@ __attribute__((unused))bool execute_SHL_instruction(task_t* task, uint16_t opera
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) << operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) << read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) << read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value << read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) << operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
@@ -243,8 +324,23 @@ __attribute__((unused))bool execute_SHR_instruction(task_t* task, uint16_t opera
         }case REG_IMMEDIATE:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) >> operand2);
             return true;
-        }
-        default: break;
+        }case REG_MEM:{
+            write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) >> read_from_bus(task, operand2));
+            return true;
+        }case MEM_REG:{
+            if(is_register_8bit(operand2)){
+                write_to_bus(task, operand1, read_from_correct_register(task, operand2) >> read_from_bus(task, operand1));
+            }else{
+                uint16_t mem_value = (read_from_bus(task, operand1) << 8) | read_from_bus(task, operand1 + 1);
+                uint16_t result = mem_value << read_from_correct_register(task, operand2);
+                write_to_bus(task, operand1, result >> 8);
+                write_to_bus(task, operand1 + 1, (uint8_t)result);
+            }
+            return true;
+        }case MEM_IMMEDIATE:{
+            write_to_bus(task, operand1, read_from_bus(task, operand1) >> operand2);
+            return true;
+        }default: break;
     }
     return false;
 }
