@@ -22,11 +22,8 @@ int main(void){
     bytecode_buffer[4] = 0x1;
     bytecode_buffer[5] = 0x0;
     add_task(bytecode_buffer, 24);
-    while(1){
-        system("clear");
-        printf("REG0: %d\nREG1: %d\nREG2: %d\nREG3: %d\nREG4: %d\nREG5: %d\n", task_array->info.registers[0], task_array->info.registers[1], task_array->info.registers[2], task_array->info.registers[3], task_array->info.registers[4], task_array->info.registers[5]);
-        printf("%d:%d\n", task_array->info.instruction_pointer, task_array->bytecode_buffer_length);
-        sleep(1);
-        execute_task_iteration(task_array);
-    }
+    add_task(bytecode_buffer, 24);
+    write_to_bus(task_array, 0, 0x10);
+    printf("%x\n", read_from_bus(task_array, 0));
+    //schedule_tasks();
 }
