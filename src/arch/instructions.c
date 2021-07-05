@@ -59,11 +59,11 @@ static uint16_t read_from_correct_register(task_t* task, uint16_t register_opera
     return task->info.registers[register_operand];
 }
 
-__attribute__((unused))bool execute_NULL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_NULL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     return true;
 }
 
-__attribute__((unused))bool execute_STORE_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_STORE_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand2));
@@ -90,7 +90,7 @@ __attribute__((unused))bool execute_STORE_instruction(task_t* task, uint16_t ope
     return false;
 }
 
-__attribute__((unused))bool execute_ADD_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_ADD_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) + read_from_correct_register(task, operand2));
@@ -119,7 +119,7 @@ __attribute__((unused))bool execute_ADD_instruction(task_t* task, uint16_t opera
     return false;
 }
 
-__attribute__((unused))bool execute_SUB_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_SUB_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) - read_from_correct_register(task, operand2));
@@ -147,7 +147,7 @@ __attribute__((unused))bool execute_SUB_instruction(task_t* task, uint16_t opera
     }
     return false;
 }
-__attribute__((unused))bool execute_JMPEQ_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_JMPEQ_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG:{
             if(task->info.flags & EQUAL){
@@ -164,7 +164,7 @@ __attribute__((unused))bool execute_JMPEQ_instruction(task_t* task, uint16_t ope
     return false;
 }
 
-__attribute__((unused))bool execute_JMPMR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_JMPMR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG:{
             if(task->info.flags & MORE){
@@ -181,7 +181,7 @@ __attribute__((unused))bool execute_JMPMR_instruction(task_t* task, uint16_t ope
     return false;
 }
 
-__attribute__((unused))bool execute_CMP_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_CMP_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             if(read_from_correct_register(task, operand1) == read_from_correct_register(task, operand2)){
@@ -209,13 +209,49 @@ __attribute__((unused))bool execute_CMP_instruction(task_t* task, uint16_t opera
                 task->info.flags &= ~MORE;
             }
             return true;
+        }case REG_MEM:{
+            if(read_from_correct_register(task, operand1) == read_from_bus(task, operand2)){
+                task->info.flags |= EQUAL;
+            }else{
+                task->info.flags &= ~EQUAL;
+            }
+
+            if(read_from_correct_register(task, operand1) > read_from_bus(task, operand2)){
+                task->info.flags |= MORE;
+            }else{
+                task->info.flags &= ~MORE;
+            }
+        }case MEM_REG:{
+            if(read_from_correct_register(task, operand2) == read_from_bus(task, operand1)){
+                task->info.flags |= EQUAL;
+            }else{
+                task->info.flags &= ~EQUAL;
+            }
+
+            if(read_from_correct_register(task, operand2) > read_from_bus(task, operand1)){
+                task->info.flags |= MORE;
+            }else{
+                task->info.flags &= ~MORE;
+            }
+        }case MEM_IMMEDIATE:{
+            if(read_from_bus(task, operand1) == operand2){
+                task->info.flags |= EQUAL;
+            }else{
+                task->info.flags &= ~EQUAL;
+            }
+
+            if(read_from_bus(task, operand1) > operand2){
+                task->info.flags |= EQUAL;
+            }else{
+                task->info.flags &= ~EQUAL;
+            }
         }default: break;
     }
 
     return false;
 }
 
-__attribute__((unused))bool execute_NOT_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_NOT_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG:{
             write_to_correct_register(task, operand1, ~read_from_correct_register(task, operand1));
@@ -229,7 +265,7 @@ __attribute__((unused))bool execute_NOT_instruction(task_t* task, uint16_t opera
     return false;
 }
 
-__attribute__((unused))bool execute_AND_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_AND_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) & read_from_correct_register(task, operand2));
@@ -258,7 +294,7 @@ __attribute__((unused))bool execute_AND_instruction(task_t* task, uint16_t opera
     return false;
 }
 
-__attribute__((unused))bool execute_OR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_OR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) | read_from_correct_register(task, operand2));
@@ -287,7 +323,7 @@ __attribute__((unused))bool execute_OR_instruction(task_t* task, uint16_t operan
     return false;
 }
 
-__attribute__((unused))bool execute_SHL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_SHL_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) << read_from_correct_register(task, operand2));
@@ -316,7 +352,7 @@ __attribute__((unused))bool execute_SHL_instruction(task_t* task, uint16_t opera
     return false;
 }
 
-__attribute__((unused))bool execute_SHR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
+bool execute_SHR_instruction(task_t* task, uint16_t operand1, uint16_t operand2, emu_addr_modes_e addr_mode){
     switch(addr_mode){
         case REG_REG:{
             write_to_correct_register(task, operand1, read_from_correct_register(task, operand1) >> read_from_correct_register(task, operand2));
